@@ -26,7 +26,8 @@ namespace ServerApp
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews();
+            services.AddControllersWithViews()
+                .AddJsonOptions(options => options.JsonSerializerOptions.IgnoreNullValues = true);
 
             string connectionString = Configuration["ConnectionStrings:DefaultConnection"];
             services.AddDbContext<DataContext>(options =>

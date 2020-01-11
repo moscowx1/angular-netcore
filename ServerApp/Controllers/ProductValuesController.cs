@@ -1,9 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ServerApp.Models;
 using ServerApp.Models.BindingTargets;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.ComponentModel;
+using System.Text.Json;
+using System;
 
 namespace ServerApp.Controllers
 {
@@ -26,7 +31,7 @@ namespace ServerApp.Controllers
                 .Include(p => p.Ratings)
                 .FirstOrDefault(p => p.ProductId == id);
 
-            if(res != null)
+            if (res != null)
             {
                 if (res.Supplier != null)
                     res.Supplier.Products = res.Supplier.Products.Select(p =>
@@ -67,7 +72,8 @@ namespace ServerApp.Controllers
             {
                 query = query.Include(p => p.Supplier).Include(p => p.Ratings);
                 List<Product> data = query.ToList();
-                data.ForEach(p => {
+                data.ForEach(p =>
+                {
                     if (p.Supplier != null)
                     {
                         p.Supplier.Products = null;
@@ -101,6 +107,54 @@ namespace ServerApp.Controllers
             }
             else
                 return BadRequest(ModelState);
+        }
+
+        [HttpPut]
+        public IActionResult ReplaceProduct(long id, [FromBody] ProductData pdata)
+        {
+            if (ModelState.IsValid)
+            {
+                Product p = pdata.Product;
+                p.ProductId = id;
+                if (p.Supplier != null && p.Supplier.SupplierId != 0)
+                {
+                    context.Attach(p.Supplier);
+                }
+                context.Update(p);
+                context.SaveChanges();
+                return Ok();
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+        }
+
+        [HttpPatch("{id}")]
+        public IActionResult UpdateProduct(long id,
+            [FromBody] JsonPatchDocument<ProductData> patch)
+        {
+            Product product = context.Products
+                .Include(p => p.Supplier)
+                .First(p => p.ProductId == id);
+
+            ProductData pdata = new ProductData { Product = product };
+
+            patch.ApplyTo(pdata);
+            if (ModelState.IsValid && TryValidateModel(pdata))
+            {
+                if (product.Supplier != null && product.Supplier.SupplierId != 0)
+                {
+                    context.Attach(product.Supplier);
+                }
+                context.SaveChanges();
+                return Ok();
+            }
+            else
+            {
+                Console.WriteLine(string.Join(" ", ModelState.Values));
+                return BadRequest(ModelState);
+            }
         }
     }
 }

@@ -34,4 +34,23 @@ export class AppComponent {
 
     this.repo.createProductAndSupplier(p, s);
   }
+
+  replaceProduct() {
+    let p = this.repo.products[0];
+    p.name = "Modified Product";
+    p.category = "Modified Category";
+    this.repo.replaceProduct(p);
+  }
+
+  replaceSupplier() {
+    let s = new Supplier(3, "Modified Supplier", "New York", "NY");
+    this.repo.replaceSupplier(s);
+  }
+
+  updateProduct() {
+    let changes = new Map<string, any>();
+    changes.set("name", "Green Kayak");
+    changes.set("supplier", null);
+    this.repo.updateProduct(1, changes);
+  }
 }

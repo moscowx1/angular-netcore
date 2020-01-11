@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ServerApp.Models;
+using System.Linq;
 
 namespace ServerApp.Controllers
 {
@@ -18,7 +20,10 @@ namespace ServerApp.Controllers
         public Product GetProduct(long id)
         {
             System.Threading.Thread.Sleep(500);
-            return context.Products.Find(id);
+            return context.Products
+                .Include(p => p.Supplier)
+                .Include(p => p.Ratings)
+                .FirstOrDefault(p => p.ProductId == id);
         }
     }
 }

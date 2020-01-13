@@ -9,6 +9,7 @@ using System.Reflection;
 using System.ComponentModel;
 using System.Text.Json;
 using System;
+using Microsoft.Extensions.Logging;
 
 namespace ServerApp.Controllers
 {
@@ -17,10 +18,11 @@ namespace ServerApp.Controllers
     public class ProductValuesController : Controller
     {
         private DataContext context;
-
-        public ProductValuesController(DataContext ctx)
+        private ILogger<ProductValuesController> logger;
+        public ProductValuesController(DataContext ctx, ILogger<ProductValuesController> logger)
         {
             context = ctx;
+            this.logger = logger;
         }
 
         [HttpGet("{id}")]
@@ -130,31 +132,11 @@ namespace ServerApp.Controllers
             }
         }
 
-        [HttpPatch("{id}")]
-        public IActionResult UpdateProduct(long id,
-            [FromBody] JsonPatchDocument<ProductData> patch)
+        [HttpDelete("{id}")]
+        public void DeleteProduct(long id)
         {
-            Product product = context.Products
-                .Include(p => p.Supplier)
-                .First(p => p.ProductId == id);
-
-            ProductData pdata = new ProductData { Product = product };
-
-            patch.ApplyTo(pdata);
-            if (ModelState.IsValid && TryValidateModel(pdata))
-            {
-                if (product.Supplier != null && product.Supplier.SupplierId != 0)
-                {
-                    context.Attach(product.Supplier);
-                }
-                context.SaveChanges();
-                return Ok();
-            }
-            else
-            {
-                Console.WriteLine(string.Join(" ", ModelState.Values));
-                return BadRequest(ModelState);
-            }
+            context.Products.Remove(new Product { ProductId = id });
+            context.SaveChanges();
         }
     }
 }

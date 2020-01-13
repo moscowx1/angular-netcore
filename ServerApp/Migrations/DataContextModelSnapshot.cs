@@ -93,14 +93,16 @@ namespace ServerApp.Migrations
                 {
                     b.HasOne("ServerApp.Models.Supplier", "Supplier")
                         .WithMany("Products")
-                        .HasForeignKey("SupplierId");
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("ServerApp.Models.Rating", b =>
                 {
                     b.HasOne("ServerApp.Models.Product", "Product")
                         .WithMany("Ratings")
-                        .HasForeignKey("ProductId");
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618
         }

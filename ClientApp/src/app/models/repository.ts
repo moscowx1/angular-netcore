@@ -101,12 +101,15 @@ export class Repository {
       .subscribe(() => this.getProducts());
   }
 
-  updateProduct(id: number, changes: Map<string, any>) {
-    let patch = [];
-    changes.forEach((value, key) =>
-      patch.push({ op: "replace", path: key, value: value }));
-
-    this.http.patch(`${productsUrl}/${id}`, patch)
+  deleteProduct(id: number) {
+    this.http.delete(`${productsUrl}/${id}`)
       .subscribe(() => this.getProducts());
+  }
+  deleteSupplier(id: number) {
+    this.http.delete(`${suppliersUrl}/${id}`)
+      .subscribe(() => {
+        this.getProducts();
+        this.getSuppliers();
+      });
   }
 }
